@@ -2,6 +2,9 @@
 
 # Getting Started
 
+## Install the packages
+1. `pip install -r requirements.txt`
+
 ## Download the data
 To download the data, you'll have to run `python src/ingest/crawl_docs.py`. It's going to dump a lot of files into `data/raw/docs/` and `data/raw/tutorials`.
 
