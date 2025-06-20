@@ -1,0 +1,152 @@
+`Introduction &lt;../beginner/ddp_series_intro.html&gt;`__ \|\| `What is DDP &lt;../beginner/ddp_series_theory.html&gt;`__ \|\| `Single-Node
+Multi-GPU Training &lt;../beginner/ddp_series_multigpu.html&gt;`__ \|\| `Fault
+Tolerance &lt;../beginner/ddp_series_fault_tolerance.html&gt;`__ \|\| `Multi-Node
+training
+<ddp_series_multinode.html>
+ `__ \|\| **minGPT Training**
+
+Training “real-world” models with DDP
+=====================================
+
+Authors: `Suraj Subramanian
+ <https: github.com="" subramen="">
+  `__
+
+.. grid:: 2
+
+   .. grid-item-card:: :octicon:`mortar-board;1em;` What you will learn
+      :class-card: card-prerequisites
+
+      -  Best practices when writing a distributed training script
+      -  Increased flexibility with saving/loading artifacts in the cloud
+      -  When DDP is NOT suitable
+
+      .. grid:: 1
+
+         .. grid-item::
+
+            :octicon:`code-square;1.0em;` View the code used in this tutorial on `GitHub
+  <https: distributed="" examples="" github.com="" main="" mingpt-ddp="" pytorch="" tree="">
+   `__
+
+   .. grid-item-card:: :octicon:`list-unordered;1em;` Prerequisites
+      :class-card: card-prerequisites
+
+      - Familiarity with `multi-GPU training &lt;../beginner/ddp_series_multigpu.html&gt;`__ and `torchrun &lt;../beginner/ddp_series_fault_tolerance.html&gt;`__ 
+      - [Optional] Familiarity with `multinode training
+   <ddp_series_multinode.html>
+    `__
+      - 2 or more TCP-reachable GPU machines (this tutorial uses AWS p3.2xlarge instances)
+      - PyTorch `installed
+    <https: get-started="" locally="" pytorch.org="">
+    </https:>
+    `__ with CUDA on all machines
+
+Follow along with the video below or on `youtube
+    <https: watch="" www.youtube.com="" xfsfdgkzhh4="">
+     `__.
+
+.. raw:: html
+     <div style="margin-top:10px; margin-bottom:10px;">
+      <iframe allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" frameborder="0" height="315" src="https://www.youtube.com/embed/XFsFDGKZHh4" width="560">
+      </iframe>
+     </div>
+     In this video, we will review the process of training a GPT model in multinode DDP.
+We first clone the `minGPT repo
+     <https: github.com="" karpathy="" mingpt="">
+      `__ and refactor the Trainer
+to resemble the structure we have used in this series. Watch the video for details on these changes.
+
+We use `hydra
+      <https: hydra.cc="">
+      </https:>
+      `__ to centrally manage all the configurations for our training run.
+Once the code has been refactored, we run it first on a single-node with 4 GPUs, and then on a slurm cluster.
+
+Files used for training
+~~~~~~~~~~~~~~~~~~~~~~~~
+- `trainer.py
+      <https: blob="" distributed="" examples="" github.com="" main="" mingpt="" mingpt-ddp="" pytorch="" trainer.py="">
+       `__ includes the Trainer class that runs the distributed training iterations on the model with the provided dataset.
+- `model.py
+       <https: blob="" distributed="" examples="" github.com="" main="" mingpt="" mingpt-ddp="" model.py="" pytorch="">
+        `__ defines the model architecture.
+- `char_dataset.py
+        <https: blob="" char_dataset.py="" distributed="" examples="" github.com="" main="" mingpt="" mingpt-ddp="" pytorch="">
+         `__ contains the ``Dataset`` class for a character-level dataset.
+- `gpt2_train_cfg.yaml
+         <https: blob="" distributed="" examples="" github.com="" gpt2_train_cfg.yaml="" main="" mingpt="" mingpt-ddp="" pytorch="">
+          `__ contains the configurations for data, model, optimizer, and training run.
+- `main.py
+          <https: blob="" distributed="" examples="" github.com="" main="" main.py="" mingpt="" mingpt-ddp="" pytorch="">
+           `__ is the entry point to the training job. It sets up the DDP process group, reads all the configurations and runs the training job.
+
+
+Saving and Loading from the cloud
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In the video above, we save training snapshots directly to the cloud. This gives us the flexibility to continue training
+from any node that has access to the cloud bucket.
+
+
+Using Mixed Precision
+~~~~~~~~~~~~~~~~~~~~~~~~
+To speed things up, you might be able to use `Mixed Precision
+           <https: amp.html="" docs="" pytorch.org="" stable="">
+            `__ to train your models. 
+In Mixed Precision, some parts of the training process are carried out in reduced precision, while other steps 
+that are more sensitive to precision drops are maintained in FP32 precision. 
+
+
+When is DDP not enough?
+~~~~~~~~~~~~~~~~~~~~~~~~
+A typical training run's memory footprint consists of model weights, activations, gradients, the input batch, and the optimizer state.
+Since DDP replicates the model on each GPU, it only works when GPUs have sufficient capacity to accomodate the full footprint. 
+When models grow larger, more aggressive techniques might be useful:
+
+-  `activation checkpointing
+            <https: checkpoint.html="" docs="" pytorch.org="" stable="">
+             `__: Instead of saving intermediate activations during the forward pass, the activations are recomputed during the backward pass. In this approach, we run more compute but save on memory footprint.
+-  `Fully-Sharded Data Parallel
+             <https: docs="" fsdp.html="" pytorch.org="" stable="">
+              `__: Here the model is not replicated but "sharded" across all the GPUs, and computation is overlapped with communication in the forward and backward passes. Read our `blog
+              <https: medium.com="" pytorch="" training-a-1-trillion-parameter-model-with-pytorch-fully-sharded-data-parallel-on-aws-3ac13aa96cff="">
+               `__ to learn how we trained a 1 Trillion parameter model with FSDP.
+
+
+Further Reading
+---------------
+-  `Multi-Node training with DDP
+               <ddp_series_multinode.html>
+                `__ (previous tutorial in this series)
+-  `Mixed Precision training
+                <https: amp.html="" docs="" pytorch.org="" stable="">
+                 `__
+-  `Fully-Sharded Data Parallel
+                 <https: docs="" fsdp.html="" pytorch.org="" stable="">
+                  `__
+-  `Training a 1T parameter model with FSDP
+                  <https: medium.com="" pytorch="" training-a-1-trillion-parameter-model-with-pytorch-fully-sharded-data-parallel-on-aws-3ac13aa96cff="">
+                   `__
+-  `FSDP Video Tutorial Series
+                   <https: playlist?list="PL_lsbAsL_o2BT6aerEKgIoufVD_fodnuT" www.youtube.com="">
+                    `__
+                   </https:>
+                  </https:>
+                 </https:>
+                </https:>
+               </ddp_series_multinode.html>
+              </https:>
+             </https:>
+            </https:>
+           </https:>
+          </https:>
+         </https:>
+        </https:>
+       </https:>
+      </https:>
+     </https:>
+    </https:>
+   </ddp_series_multinode.html>
+  </https:>
+ </https:>
+</ddp_series_multinode.html>
