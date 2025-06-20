@@ -61,6 +61,8 @@ def get_all_links(base_url):
 
 def save_pages(pages, subfolder):
     output_dir = os.path.join(RAW_DATA_DIR, subfolder)
+
+    # create the data output folder if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
 
     for i, (url, html) in enumerate(tqdm(pages, desc=f"Saving {subfolder} pages")):
