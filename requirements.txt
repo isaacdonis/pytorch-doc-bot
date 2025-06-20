@@ -1,0 +1,6 @@
+beautifulsoup4==4.12.3
+pip==25.1
+setuptools==78.1.1
+soupsieve==2.5
+tqdm==4.67.1
+wheel==0.45.1
